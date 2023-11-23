@@ -1,0 +1,27 @@
+{
+  "name": "filessorter",
+  "version": "1.0.0",
+  "description": "Sorts files into folders according to the first letter of the file",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dacidon/files-sorter.git"
+  },
+  "author": "dacidon",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dacidon/files-sorter/issues"
+  },
+  "homepage": "https://github.com/Dacidon/files-sorter",
+  "devDependencies": {
+    "eslint": "^8.54.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-n": "^16.3.1",
+    "eslint-plugin-promise": "^6.1.1"
+  }
+}
