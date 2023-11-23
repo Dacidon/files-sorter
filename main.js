@@ -1,8 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 
-const base = './src';
-const dist = './dist';
+const argv = process.argv.slice(2);
+
+// 1 аргумент командной строки - исходная папка
+// 2 аргумент командной строки - итоговая папка
+// 3 аргумент командной строки - true/false (см. 47 строку)
+const base = argv[0];
+const dist = argv[1];
+const delBase = argv[2];
+
 if (!fs.existsSync(dist)) {
   fs.mkdirSync(dist);
 }
@@ -17,16 +24,18 @@ const readDirectory = (base) => {
       readDirectory(objPath);
     } else {
       const parseObj = path.parse(obj);
-      const newObjPath = path.join(dist, parseObj.name.toUpperCase());
+      const newObjPath = path.join(dist, parseObj.name[0].toUpperCase());
       if (!fs.existsSync(newObjPath)) {
         fs.mkdirSync(newObjPath);
       }
-      fs.linkSync(objPath, path.join(newObjPath, obj), (err) => {
-        if (err) {
-          console.error(err);
-        }
-        console.log('Copy created.');
-      });
+
+      if (!fs.existsSync(path.join(newObjPath, obj))) {
+        fs.linkSync(objPath, path.join(newObjPath, obj), (err) => {
+          if (err) {
+            console.error(err);
+          }
+        });
+      }
       fs.unlink(objPath, (err) => {
         if (err) {
           console.error(err);
@@ -35,6 +44,12 @@ const readDirectory = (base) => {
       });
     }
   });
+  // Удаление исходной папки если 3 аргумент командной строки - true
+  if (delBase === 'true') {
+    fs.rmdir(base, (err) => {
+      console.error(err);
+    });
+  }
 };
 
 readDirectory(base, 0);
