@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-
 const argv = process.argv.slice(2);
 
 // 1 аргумент командной строки - исходная папка
