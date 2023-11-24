@@ -10,26 +10,43 @@ const dist = argv[1];
 const delBase = argv[2];
 
 if (!fs.existsSync(dist)) {
-  fs.mkdirSync(dist);
+  fs.mkdir(dist, (err) => {
+    if (err) {
+      console.error(err);
+    }
+    console.log('Final folder created.');
+  });
 }
 
 const readDirectory = (base) => {
-  const objs = fs.readdirSync(base);
+  const objs = fs.readdir(base, (err) => {
+    if (err) {
+      console.error(err);
+    }
+  });
 
   objs.forEach(obj => {
     const objPath = path.join(base, obj);
-    const objState = fs.statSync(objPath);
+    const objState = fs.stat(objPath, (err) => {
+      if (err) {
+        console.error(err);
+      }
+    });
     if (objState.isDirectory()) {
       readDirectory(objPath);
     } else {
       const parseObj = path.parse(obj);
       const newObjPath = path.join(dist, parseObj.name[0].toUpperCase());
       if (!fs.existsSync(newObjPath)) {
-        fs.mkdirSync(newObjPath);
+        fs.mkdir(newObjPath, (err) => {
+          if (err) {
+            console.error(err);
+          }
+        });
       }
 
       if (!fs.existsSync(path.join(newObjPath, obj))) {
-        fs.linkSync(objPath, path.join(newObjPath, obj), (err) => {
+        fs.link(objPath, path.join(newObjPath, obj), (err) => {
           if (err) {
             console.error(err);
           }
