@@ -5,67 +5,85 @@ const argv = process.argv.slice(2);
 // 1 аргумент командной строки - исходная папка
 // 2 аргумент командной строки - итоговая папка
 // 3 аргумент командной строки - true/false (см. 47 строку)
-const base = argv[0];
+const src = argv[0];
 const dist = argv[1];
-const delBase = argv[2];
+const delsrc = argv[2];
 
-if (!fs.existsSync(dist)) {
-  fs.mkdir(dist, (err) => {
-    if (err) {
-      console.error(err);
-    }
-    console.log('Final folder created.');
+async function getStats (filePath) {
+  return new Promise((resolve, reject) => {
+    fs.stat(filePath, (err, stats) => {
+      if (err) reject(err);
+      resolve(stats);
+    });
   });
 }
 
-const readDirectory = (base) => {
-  const objs = fs.readdir(base, (err) => {
-    if (err) {
-      console.error(err);
-    }
-  });
+async function readDir (src) {
+  return new Promise((resolve, reject) => {
+    fs.readdir(src, (err, files) => {
+      if (err) reject(err);
 
-  objs.forEach(obj => {
-    const objPath = path.join(base, obj);
-    const objState = fs.stat(objPath, (err) => {
-      if (err) {
-        console.error(err);
-      }
+      resolve(files);
     });
-    if (objState.isDirectory()) {
-      readDirectory(objPath);
+  });
+}
+
+async function createFinalDir (dist) {
+  return new Promise((resolve) => {
+    fs.mkdir(dist, () => {
+      console.log('Final folder created.');
+    });
+    resolve();
+  });
+}
+
+async function createDir (newfilePath) {
+  return new Promise((resolve) => {
+    fs.mkdir(newfilePath, () => {
+      console.log('New folder created.');
+    });
+    resolve();
+  });
+}
+
+async function copyFile (filePath, newfilePath, file) {
+  return new Promise((resolve) => {
+    fs.link(filePath, path.join(newfilePath, file), () => {
+      console.log('link done');
+    });
+    resolve();
+  });
+}
+
+async function sort (src) {
+  const files = await readDir(src);
+
+  await createFinalDir(dist);
+  for (const file of files) {
+    const filePath = path.join(src, file);
+    const stat = await getStats(filePath);
+
+    if (stat.isDirectory()) {
+      await sort(filePath);
     } else {
-      const parseObj = path.parse(obj);
-      const newObjPath = path.join(dist, parseObj.name[0].toUpperCase());
-      if (!fs.existsSync(newObjPath)) {
-        fs.mkdir(newObjPath, (err) => {
-          if (err) {
-            console.error(err);
-          }
-        });
-      }
+      const parsedfile = path.parse(file);
+      const newfilePath = path.join(dist, parsedfile.name[0].toUpperCase());
 
-      if (!fs.existsSync(path.join(newObjPath, obj))) {
-        fs.link(objPath, path.join(newObjPath, obj), (err) => {
-          if (err) {
-            console.error(err);
-          }
-        });
-      }
-      fs.unlink(objPath, (err) => {
-        if (err) {
-          console.error(err);
-        }
-        console.log('Source file deleted.');
-      });
+      await createDir(newfilePath);
+      await copyFile(filePath, newfilePath, file);
+      console.log('file: ', newfilePath);
     }
-  });
-  // Удаление исходной папки если 3 аргумент командной строки - true
-  if (delBase === 'true') {
-    fs.rmdir(base, (err) => {
-      console.error(err);
-    });
   }
-};
+}
 
-readDirectory(base, 0);
+(async () => {
+  try {
+    await sort(src);
+
+    if (delsrc === 'true') {
+      // delete folder
+    }
+  } catch (error) {
+    console.log(error);
+  }
+})();
