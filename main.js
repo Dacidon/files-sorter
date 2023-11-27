@@ -28,37 +28,37 @@ async function readDir (src) {
   });
 }
 
-async function createFinalDir (dist) {
-  return new Promise((resolve) => {
-    fs.mkdir(dist, () => {
-      console.log('Final folder created.');
+async function createDir (newFolderPath) {
+  return new Promise((resolve, reject) => {
+    fs.mkdir(newFolderPath, (err) => {
+      if (err && err.code != 'EEXIST') reject(err);
+      resolve();
     });
-    resolve();
   });
 }
 
-async function createDir (newfilePath) {
-  return new Promise((resolve) => {
-    fs.mkdir(newfilePath, () => {
-      console.log('New folder created.');
+async function deleteDir (folderPath) {
+  return new Promise((resolve, reject) => {
+    fs.rmdir(folderPath, (err) => {
+      if (err) reject(err);
+      resolve();
     });
-    resolve();
   });
 }
 
-async function copyFile (filePath, newfilePath, file) {
+async function copyFile (filePath, newFilePath) {
   return new Promise((resolve) => {
-    fs.link(filePath, path.join(newfilePath, file), () => {
+    fs.link(filePath, newFilePath, () => {
       console.log('link done');
+      resolve();
     });
-    resolve();
   });
 }
 
 async function sort (src) {
   const files = await readDir(src);
 
-  await createFinalDir(dist);
+  await createDir(dist);
   for (const file of files) {
     const filePath = path.join(src, file);
     const stat = await getStats(filePath);
@@ -67,11 +67,32 @@ async function sort (src) {
       await sort(filePath);
     } else {
       const parsedfile = path.parse(file);
-      const newfilePath = path.join(dist, parsedfile.name[0].toUpperCase());
+      const newFolderPath = path.join(dist, parsedfile.name[0].toUpperCase());
+      const newFilePath = path.join(newFolderPath, file);
 
-      await createDir(newfilePath);
-      await copyFile(filePath, newfilePath, file);
-      console.log('file: ', newfilePath);
+      await createDir(newFolderPath);
+      await copyFile(filePath, newFilePath);
+      console.log('file: ', newFolderPath);
+    }
+  }
+}
+
+async function dirDelete (src) {
+  const files = await readDir(src);
+
+  for (const file of files) {
+    const filePath = path.join(src, file);
+    const stat = await getStats(filePath);
+
+    if (stat.isDirectory()) {
+      await dirDelete(filePath);
+    } else {
+      const parsedfile = path.parse(file);
+      const newFolderPath = path.join(dist, parsedfile.name[0].toUpperCase());
+      const newFilePath = path.join(newFolderPath, file);
+
+      
+      console.log('file: ', newFolderPath);
     }
   }
 }
@@ -81,7 +102,7 @@ async function sort (src) {
     await sort(src);
 
     if (delsrc === 'true') {
-      // delete folder
+
     }
   } catch (error) {
     console.log(error);
