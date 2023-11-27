@@ -9,14 +9,12 @@ const base = argv[0];
 const dist = argv[1];
 const delBase = argv[2];
 
-if (!fs.existsSync(dist)) {
-  fs.mkdir(dist, (err) => {
-    if (err) {
-      console.error(err);
-    }
-    console.log('Final folder created.');
-  });
-}
+fs.mkdir(dist, (err) => {
+  if (err && err.code !== 'EEXIST') {
+    console.error(err);
+  }
+  console.log('Final folder created.');
+});
 
 const readDirectory = (base) => {
   const objs = fs.readdir(base, (err) => {
