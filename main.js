@@ -29,19 +29,16 @@ const readDirectory = (base) => {
           const parseObj = path.parse(obj);
           const newFolderPath = path.join(dist, parseObj.name[0].toUpperCase());
           const newObjPath = path.join(newFolderPath, obj);
-          if (!fs.existsSync(newFolderPath)) {
+          if (!fs.existsSync(newObjPath)) {
             fs.mkdir(newFolderPath, (err) => {
               if (err && err.code !== 'EEXIST') {
                 console.error(err);
               }
-            });
-          }
-
-          if (!fs.existsSync(newObjPath)) {
-            fs.link(objPath, newObjPath, (err) => {
-              if (err && err.code !== 'EEXIST') {
-                console.error(err);
-              }
+              fs.link(objPath, newObjPath, (err) => {
+                if (err && err.code !== 'EEXIST') {
+                  console.error(err);
+                }
+              });
             });
           }
         }
